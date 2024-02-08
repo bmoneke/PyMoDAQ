@@ -32,7 +32,7 @@ class DAQ_Move_LECODirector(LECODirector, DAQ_Move_base):
     is_multiaxes = False
     axes_names = []
     params_client = []  # parameters of a client grabber
-    data_actuator_type = DataActuatorType['DataActuator']
+    data_actuator_type = DataActuatorType['float']
 
     message_list = LECODirector.message_list + ["move_abs", 'move_home', 'move_rel',
                                                 'get_actuator_value', 'stop_motion', 'position_is',
@@ -84,15 +84,15 @@ class DAQ_Move_LECODirector(LECODirector, DAQ_Move_base):
             self.controller.set_remote_name(self.communicator.full_name)
         except TimeoutError:
             print("Timeout setting remote name.")
-        self.settings.child('infos').addChildren(self.params_client)
+        # self.settings.child('infos').addChildren(self.params_client)
 
         self.settings.child('units').hide()
         self.settings.child('epsilon').hide()
 
-        self.status.info = info
+        # self.status.info = info
         self.status.controller = self.controller
         self.status.initialized = True
-        return self.status
+        return "LECODirector initialized", self.status.initialized
 
     def move_abs(self, position: DataActuator) -> None:
         position = self.check_bound(position)
