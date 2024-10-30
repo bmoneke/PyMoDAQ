@@ -46,7 +46,6 @@ class DetectorDirector(GenericDirector):
 
 class ActuatorDirector(GenericDirector):
     def move_abs(self, position: Union[float, DataActuator]) -> None:
-        # TODO change to
         self.ask_rpc(
             "move_abs",
             **binary_serialization_to_kwargs(

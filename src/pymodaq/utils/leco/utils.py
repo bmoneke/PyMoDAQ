@@ -25,17 +25,6 @@ def serialize_object(pymodaq_object: Union[SERIALIZABLE, Any]) -> Union[str, Any
                          "JSON serializable, nor via PyMoDAQ.")
 
 
-def create_leco_transfer_tuple(pymodaq_object: Union[SERIALIZABLE, Any]) -> tuple[Any, list[bytes]]:
-    """Create a tuple to send via LECO, either directly or binary encoded."""
-    if isinstance(pymodaq_object, get_args(JSON_TYPES)):
-        return pymodaq_object, []
-    elif isinstance(pymodaq_object, get_args(SERIALIZABLE)):
-        return None, [Serializer().type_and_object_serialization(pymodaq_object)]
-    else:
-        raise ValueError(f"{pymodaq_object} of type '{type(pymodaq_object).__name__}' is neither "
-                         "JSON serializable, nor via PyMoDAQ.")
-
-
 def thread_command_to_leco_tuple(thread_command: ThreadCommand) -> tuple[dict[str, Any], list[bytes]]:
     """Convert a thread_command to a dictionary and a list of bytes."""
     d: dict[str, Any] = {"type": "ThreadCommand", "command": thread_command.command}

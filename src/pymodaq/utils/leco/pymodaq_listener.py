@@ -227,14 +227,17 @@ class PymodaqListener(Listener):
         self.publisher.send_message(self.create_thread_command_message(thread_command))
 
     def create_signal_message(self, signal_name: str, signal_payload: Optional[Any]) -> DataMessage:
-        d = {"type": "Signal", "name": signal_name}
-        additional_payload = []
+        d: dict[str, Any] = {"type": "Signal", "name": signal_name}
+        additional_payload = None
         if signal_payload is not None:
-            d["content"], additional_payload = create_leco_transfer_tuple(
+            d["content"], additional_payload = binary_serialization(
                 signal_payload
             )
-        message = DataMessage(topic=self.communicator.full_name, data=d)
-        message.payload.extend(additional_payload)
+        message = DataMessage(
+            topic=self.communicator.full_name,
+            data=d,
+            additional_payload=additional_payload,
+        )
         return message
 
     def publish_signal(self, signal_name: str, signal_payload: Optional[Any]) -> None:
