@@ -15,7 +15,7 @@ JSON_TYPES = Union[str, int, float]
 
 
 def serialize_object(pymodaq_object: Union[SERIALIZABLE, Any]) -> Union[str, Any]:
-    """Serialize a pymodaq object, if it is not JSON compatible."""
+    """Serialize a pymodaq object (base64), if it is not JSON compatible."""
     if isinstance(pymodaq_object, get_args(JSON_TYPES)):
         return pymodaq_object
     elif isinstance(pymodaq_object, get_args(SERIALIZABLE)):
@@ -78,7 +78,7 @@ def binary_serialization(
     if isinstance(pymodaq_object, get_args(JSON_TYPES)):
         return pymodaq_object, None
     elif isinstance(pymodaq_object, get_args(SERIALIZABLE)):
-        return None, [Serializer(pymodaq_object).to_bytes()]
+        return None, [Serializer().type_and_object_serialization(pymodaq_object)]
     else:
         raise ValueError(
             f"{pymodaq_object} of type '{type(pymodaq_object).__name__}' is neither "

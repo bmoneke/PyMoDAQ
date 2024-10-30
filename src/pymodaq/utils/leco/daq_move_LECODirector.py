@@ -165,7 +165,7 @@ class DAQ_Move_LECODirector(LECODirector, DAQ_Move_base):
             else:
                 pos = DataActuator(data=position)
         elif additional_payload is not None:
-            pos = DeSerializer(additional_payload[0]).dwa_deserialization()
+            pos = DeSerializer(additional_payload[0]).type_and_object_deserialization()
         else:
             raise ValueError("No position given")
         pos = self.get_position_with_scaling(pos)  # type: ignore

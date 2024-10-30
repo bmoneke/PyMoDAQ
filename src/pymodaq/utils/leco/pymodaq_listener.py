@@ -8,7 +8,7 @@ except ImportError:
         pass
 import logging
 from threading import Event
-from typing import Any, Optional, Union, List, Type
+from typing import Any, cast, Optional, Union, List, Type
 
 from pyleco.core import COORDINATOR_PORT
 from pyleco.utils.listener import Listener, PipeHandler
@@ -20,7 +20,7 @@ from pymodaq.utils.daq_utils import ThreadCommand
 from pymodaq.utils.parameter import ioxml
 from pymodaq.utils.tcp_ip.serializer import DataWithAxes, SERIALIZABLE, DeSerializer
 from pymodaq.utils.leco.utils import (
-    create_leco_transfer_tuple,
+    binary_serialization,
     thread_command_to_leco_tuple,
     binary_serialization_to_kwargs,
 )
@@ -83,17 +83,28 @@ class ActorHandler(PymodaqPipeHandler):
         self.register_rpc_method(self.snap_shot)
         self.register_rpc_method(self.start_grabbing)
         self.register_rpc_method(self.stop_grabbing)
-        self.register_rpc_method(self.move_abs)
-        self.register_rpc_method(self.move_rel)
+        self.register_binary_rpc_method(self.move_abs, accept_binary_input=True)
+        self.register_binary_rpc_method(self.move_rel, accept_binary_input=True)
         self.register_rpc_method(self.move_home)
         self.register_rpc_method(self.get_actuator_value)
         self.register_rpc_method(self.stop_motion)
 
     @staticmethod
-    def extract_dwa_object(data_string: str) -> DataWithAxes:
+    def extract_dwa_object(
+        position: Union[float, str], additional_payload: Optional[List[bytes]] = None
+    ) -> Union[DataWithAxes, float]:
         """Extract a DataWithAxes object from the received message."""
-        desererializer = DeSerializer.from_b64_string(data_string)
-        return desererializer.dwa_deserialization()
+        if position is None and additional_payload:
+            pos = cast(
+                DataWithAxes,
+                DeSerializer(additional_payload[0]).type_and_object_deserialization(),
+            )
+        elif isinstance(position, str):
+            desererializer = DeSerializer.from_b64_string(position)
+            pos = desererializer.dwa_deserialization()
+        else:
+            pos = position
+        return pos
 
     # generic commands
     def set_info(self, path: List[str], param_dict_str: str) -> None:
@@ -113,12 +124,22 @@ class ActorHandler(PymodaqPipeHandler):
         self.signals.cmd_signal.emit(ThreadCommand(LECOClientCommands.STOP))
 
     # actuator commands
-    def move_abs(self, position: Union[float, str]) -> None:
-        pos = self.extract_dwa_object(position) if isinstance(position, str) else position
+    def move_abs(
+        self,
+        position: Union[float, str],
+        additional_payload: Optional[List[bytes]] = None,
+    ) -> None:
+        pos = self.extract_dwa_object(
+            position=position, additional_payload=additional_payload
+        )
         self.signals.cmd_signal.emit(ThreadCommand("move_abs", attribute=[pos]))
 
-    def move_rel(self, position: Union[float, str]) -> None:
-        pos = self.extract_dwa_object(position) if isinstance(position, str) else position
+    def move_rel(
+        self,
+        position: Union[float, str],
+        additional_payload: Optional[List[bytes]] = None,
+    ) -> None:
+        pos = self.extract_dwa_object(position=position, additional_payload=additional_payload)
         self.signals.cmd_signal.emit(ThreadCommand("move_rel", attribute=[pos]))
 
     def move_home(self) -> None:

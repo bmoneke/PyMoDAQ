@@ -11,7 +11,7 @@ from pyleco.directors.director import Director
 import pymodaq.utils.parameter.utils as putils
 from pymodaq.utils.parameter import Parameter, ioxml
 from pymodaq.control_modules.move_utility_classes import DataActuator
-from pymodaq.utils.leco.utils import serialize_object
+from pymodaq.utils.leco.utils import binary_serialization_to_kwargs
 
 
 class GenericDirector(Director):
@@ -46,10 +46,21 @@ class DetectorDirector(GenericDirector):
 
 class ActuatorDirector(GenericDirector):
     def move_abs(self, position: Union[float, DataActuator]) -> None:
-        self.ask_rpc("move_abs", position=serialize_object(position))
+        # TODO change to
+        self.ask_rpc(
+            "move_abs",
+            **binary_serialization_to_kwargs(
+                pymodaq_object=position, data_key="position"
+            ),
+        )
 
     def move_rel(self, position: Union[float, DataActuator]) -> None:
-        self.ask_rpc("move_rel", position=serialize_object(position))
+        self.ask_rpc(
+            "move_rel",
+            **binary_serialization_to_kwargs(
+                pymodaq_object=position, data_key="position"
+            ),
+        )
 
     def move_home(self) -> None:
         self.ask_rpc("move_home")
